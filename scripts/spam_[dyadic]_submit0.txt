@@ -1,0 +1,15 @@
+#!/bin/bash  
+#SBATCH --time=10:00
+#SBATCH --mem-per-cpu=4000M
+#SBATCH --partition=cpu
+#SBATCH --nodes=1
+# sends mail when process begins, and  
+# when it ends. Make sure you define your email  
+#SBATCH --mail-type=begin  
+#SBATCH --mail-type=end  
+#SBATCH --mail-user=tdn@mit.edu  
+# Run instance of the serial job with unique parameters  
+echo helloWorld
+ls 
+# experiments for PAC-Bayes aggregate 
+/data/scratch/tdn/anaconda2/bin/python dataMaster_[dyadic_pacbayes]_[eTS,MD].py 2 2 spam 

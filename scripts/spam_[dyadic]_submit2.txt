@@ -1,0 +1,29 @@
+#!/bin/bash  
+# serial job using 1 node and 15 processor,  
+# and runs for 04 hours (max). 
+#SBATCH -N 1   # node count 
+#SBATCH --ntasks-per-node=15 # core count
+#SBATCH -t 01:00:00  
+# sends mail when process begins, and  
+# when it ends. Make sure you define your email  
+#SBATCH --mail-type=begin  
+#SBATCH --mail-type=end  
+#SBATCH --mail-user=tdn@mit.edu  
+module load anaconda 
+# Run instance of the serial job with unique parameters  
+
+# experiments for heuristic prunings 
+for ((ex_index=0; ex_index<5; ex_index++)) do  
+    for ((train_index=0; train_index<5; train_index++)) do
+        python dataMaster_[dyadic_pruning]_[eTS,MD].py $ex_index $train_index heuristic spam & 
+    done  
+done
+wait
+
+# experiments for scott-nowak prunings 
+for ((ex_index=0; ex_index<5; ex_index++)) do  
+    for ((train_index=0; train_index<5; train_index++)) do
+        python dataMaster_[dyadic_pruning]_[eTS,MD].py $ex_index $train_index SN spam & 
+    done  
+done
+wait

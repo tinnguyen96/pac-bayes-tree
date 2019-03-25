@@ -40,10 +40,16 @@ class Node:
         ## Whether or not the node has been visited in the bottom up pass of aggregate weighting or the pruning process 
         self._visited = False
 
-    ## the deeper the nodes the higher priority they have in the priority queue. This is to ensure
+    ## the deeper the nodes, the smaller the priority they have in the min-priority queue. This is to ensure
     ## that parent nodes are processed after their children 
-    def __cmp__(self, other):
-        return cmp(other._depth, self._depth)        
+    def __lt__(self, other):
+        return (other._depth < self._depth)
+
+    def __gt__(self, other):
+	return (other._depth > self._depth) 
+
+    def __eq__(self, other):
+	return (other._depth == self._depth)       
 
     def get_axis(self):
         return self._axis

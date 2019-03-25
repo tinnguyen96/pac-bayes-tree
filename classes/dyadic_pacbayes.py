@@ -10,14 +10,14 @@
 # - instead of using Decimal class to store the messages alpha and beta, does it 
 # make sense to normalize them along the dynamic program?  
 # 
-# Dependencies: Node.py
+# Dependencies: Node_A.py
 ################################################################################
 
 import numpy as np
-import Queue 
+import queue as Queue
 import time
 from decimal import * 
-import Node_A as Node
+from . import Node_A as Node
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 
@@ -46,7 +46,7 @@ def preprocess(data,target,test_size,train_size=None,random=42):
 
     return (X_train, y_train, X_test, y_test, numOfLabels)
 
-class DDT:
+class PBT:
     ## Input: 
     def __init__(self, numOfLabels, penaltyType="ada", priorType="effInt", val_ratio=0.35, 
                 lambda_range=np.append(np.logspace(-8, 6, num=10, base=2.0),1), error_ratio=0.5, 
@@ -57,7 +57,6 @@ class DDT:
         self._numOfLabels = numOfLabels
         self._penaltyType = penaltyType
         self._priorType = priorType
-        self._alterType = alterType
         self._linear_search = linear_search
         self._fullSample = fullSample
         self._check_invariants = check_invariants 
@@ -74,7 +73,7 @@ class DDT:
         self._X_val, self._y_val, self._valSize = X_val, y_val, len(y_val)
         self._dim = X_train.shape[1]
         self._max_splits = int(np.floor(np.log(self._trainSize)))
-        self._treeArr = range(self._trainSize)
+        self._treeArr = list(range(self._trainSize))
         self._unitCube = np.zeros((self._dim,2),dtype=np.int)
 
         # alternating optimization to search for temperature parameters 
@@ -85,15 +84,15 @@ class DDT:
 
         # Debugging
         if (self._check_invariants):
-            for lambdaIdx in xrange(self._lambda_count):
-                print "Traverse the template tree for the %s lambda value" %str(lambdaIdx)
+            for lambdaIdx in range(self._lambda_count):
+                print("Traverse the template tree for the %s lambda value" %str(lambdaIdx)) 
                 self.__traverse(self._root, 0, 5, lambdaIdx)
             
         # Debugging
         if (self._check_invariants):
-            for lambdaIdx in xrange(self._lambda_count):
-                print "Check the correctness of the dynamic program for the %s lambda value" %str(lambdaIdx)
-                print self.checkWeights(self._root, lambdaIdx)
+            for lambdaIdx in range(self._lambda_count):
+                print("Check the correctness of the dynamic program for the %s lambda value" %str(lambdaIdx))
+                print(self.checkWeights(self._root, lambdaIdx))
         
         # After the best lambda parameters have been found, train the aggregate on the whole sample 
         if (self._fullSample):
@@ -122,18 +121,18 @@ class DDT:
 
         # Debugging
         if (self._check_invariants):
-            for lambdaIdx in xrange(self._lambda_count):
-                print "Check the correctness of the dynamic program for the %s lambda value" %str(lambdaIdx)
-                print self.checkWeights(self._root, lambdaIdx)
+            for lambdaIdx in range(self._lambda_count):
+                print("Check the correctness of the dynamic program for the %s lambda value" %str(lambdaIdx))
+                print(self.checkWeights(self._root, lambdaIdx))
 
         # optimize lambda
         self._best_model_index, self._best_val_err, self._val_err = self.__optimize_lambda()
         self._best_pen_lambda = self._pen_lambda_range[self._best_model_index]
 
         if (self._report_lambda):
-            print "Lambda range after log search for penalty-lambda %s" %str(self._pen_lambda_range)
-            print "Validation errors after log search for penalty-lambda %s" %str(self._val_err)
-            print "Value of best penalty-lambda %s" %str(self._best_pen_lambda)
+            print("Lambda range after log search for penalty-lambda %s" %str(self._pen_lambda_range))
+            print("Validation errors after log search for penalty-lambda %s" %str(self._val_err))
+            print("Value of best penalty-lambda %s" %str(self._best_pen_lambda)) 
 
     def __linearSearch_penLambda(self):
         if (self._linear_search):
@@ -149,9 +148,9 @@ class DDT:
 
             # Debugging
             if (self._check_invariants):
-                for lambdaIdx in xrange(self._lambda_count):
-                    print "Check the correctness of the dynamic program for the %s lambda value" %str(lambdaIdx)
-                    print self.checkWeights(self._root, lambdaIdx)
+                for lambdaIdx in range(self._lambda_count):
+                    print("Check the correctness of the dynamic program for the %s lambda value" %str(lambdaIdx))
+                    print(self.checkWeights(self._root, lambdaIdx)) 
 
             # optimize lambda 
             self._best_model_index, self._best_val_err, self._val_err = self.__optimize_lambda()
@@ -165,9 +164,9 @@ class DDT:
             self._best_pen_lambda = self._pen_lambda_range[self._best_model_index]
 
             if (self._report_lambda):
-                print "Lambda range after linear search for penalty-lambda %s" %str(self._pen_lambda_range)
-                print "Validation errors after linear search for penalty-lambda %s" %str(self._val_err)
-                print "Value of best penalty-lambda %s" %str(self._best_pen_lambda)
+                print("Lambda range after linear search for penalty-lambda %s" %str(self._pen_lambda_range))
+                print("Validation errors after linear search for penalty-lambda %s" %str(self._val_err))
+                print("Value of best penalty-lambda %s" %str(self._best_pen_lambda)) 
 
     def __logSearch_errLambda(self, isFirst):
         self._err_lambda_range = np.copy(self._base_lambda_range)
@@ -188,18 +187,18 @@ class DDT:
         
         # Debugging
         if (self._check_invariants):
-            for lambdaIdx in xrange(self._lambda_count):
-                print "Check the correctness of the dynamic program for the %s lambda value" %str(lambdaIdx)
-                print self.checkWeights(self._root, lambdaIdx)
+            for lambdaIdx in range(self._lambda_count):
+                print("Check the correctness of the dynamic program for the %s lambda value" %str(lambdaIdx))
+                print(self.checkWeights(self._root, lambdaIdx))
 
         # optimize lambda 
         self._best_model_index, self._best_val_err, self._val_err = self.__optimize_lambda()
         self._best_err_lambda = self._err_lambda_range[self._best_model_index]
 
         if (self._report_lambda):
-            print "Lambda range after log search for error-lambda %s" %str(self._err_lambda_range)
-            print "Validation errors after log search for error-lambda %s" %str(self._val_err)
-            print "Value of best error-lambda %s" %str(self._best_err_lambda)
+            print("Lambda range after log search for error-lambda %s" %str(self._err_lambda_range))
+            print("Validation errors after log search for error-lambda %s" %str(self._val_err))
+            print("Value of best error-lambda %s" %str(self._best_err_lambda))
 
     def __linearSearch_errLambda(self):
         if (self._linear_search):
@@ -215,9 +214,9 @@ class DDT:
 
             # Debugging
             if (self._check_invariants):
-                for lambdaIdx in xrange(self._lambda_count):
-                    print "Check the correctness of the dynamic program for the %s lambda value" %str(lambdaIdx)
-                    print self.checkWeights(self._root, lambdaIdx)
+                for lambdaIdx in range(self._lambda_count):
+                    print("Check the correctness of the dynamic program for the %s lambda value" %str(lambdaIdx))
+                    print(self.checkWeights(self._root, lambdaIdx))
 
             # optimize lambda 
             self._best_model_index, self._best_val_err, self._val_err = self.__optimize_lambda()
@@ -231,9 +230,9 @@ class DDT:
             self._best_err_lambda = self._err_lambda_range[self._best_model_index]
 
             if (self._report_lambda):
-                print "Lambda range after linear search for error-lambda %s" %str(self._err_lambda_range)
-                print "Validation errors after linear search for error-lambda %s" %str(self._val_err)
-                print "Value of best error-lambda %s" %str(self._best_err_lambda)
+                print("Lambda range after linear search for error-lambda %s" %str(self._err_lambda_range))
+                print("Validation errors after linear search for error-lambda %s" %str(self._val_err))
+                print("Value of best error-lambda %s" %str(self._best_err_lambda)) 
 
     def __fullSample(self):
         self._pen_lambda_range, self._err_lambda_range = np.array([self._best_pen_lambda]), self._best_err_lambda
@@ -306,7 +305,7 @@ class DDT:
 
     def __grow(self, parent, repArray, axis, depth, lo, hi):
         labelCount = np.zeros(self._numOfLabels, dtype=np.int16)
-        for i in xrange(lo,hi):
+        for i in range(lo,hi):
             exampleIdx = self._treeArr[i]
             y = self._y_train[exampleIdx]
             labelCount[y] += 1
@@ -332,7 +331,7 @@ class DDT:
             # search for split location in treeArr, which is now sorted in the axis 
             leftLo, rightHi = lo, hi
             leftHi, rightLo = hi, hi
-            for splitIdx in xrange(lo,hi):
+            for splitIdx in range(lo,hi):
                 exampleIdx = self._treeArr[splitIdx]
                 if (self._X_train[exampleIdx,axis] > threshold):
                     leftHi, rightLo = splitIdx, splitIdx
@@ -370,7 +369,7 @@ class DDT:
                 left = node.get_left()
                 right = node.get_right()
                 temp = []
-                for lambdaIdx in xrange(self._lambda_count):
+                for lambdaIdx in range(self._lambda_count):
                     betaLeft = left.get_beta()[lambdaIdx]
                     betaRight = right.get_beta()[lambdaIdx]
                     temp.append(betaLeft*betaRight)
@@ -379,7 +378,7 @@ class DDT:
             expPhi = map(Decimal, expPhi)
             # print "expPhi value is %s" %str(expPhi)
             beta = []
-            for lambdaIdx in xrange(self._lambda_count):
+            for lambdaIdx in range(self._lambda_count):
                 beta.append(temp[lambdaIdx]+expPhi[lambdaIdx])
             node.set_phi(expPhi)
             node.set_beta(beta)
@@ -399,7 +398,7 @@ class DDT:
         rootAlpha = map(Decimal, np.ones(self._lambda_count))
         expPhiRoot = self._root.get_phi()
         weightsRoot = []
-        for lambdaIdx in xrange(self._lambda_count):
+        for lambdaIdx in range(self._lambda_count):
             weightsRoot.append(expPhiRoot[lambdaIdx]*rootAlpha[lambdaIdx])
         self._root.set_alpha(rootAlpha)
         # print "Root alpha %s" %str(rootAlpha)
@@ -417,7 +416,7 @@ class DDT:
                 # print "expPhiLeft are %s" %str(expPhiLeft)
                 alphaLeft = []
                 weightsLeft = []
-                for lambdaIdx in xrange(self._lambda_count):
+                for lambdaIdx in range(self._lambda_count):
                     parentAlpha = n.get_alpha()[lambdaIdx]
                     betaRight = right.get_beta()[lambdaIdx]
                     temp = parentAlpha*betaRight
@@ -432,7 +431,7 @@ class DDT:
                 # print "expPhiRight are %s" %str(expPhiRight)
                 alphaRight = []
                 weightsRight = []
-                for lambdaIdx in xrange(self._lambda_count):
+                for lambdaIdx in range(self._lambda_count):
                     parentAlpha = n.get_alpha()[lambdaIdx]
                     betaLeft = left.get_beta()[lambdaIdx]
                     temp = parentAlpha*betaLeft
@@ -517,11 +516,11 @@ class DDT:
     def __optimize_lambda(self):
         # print lambda_count
         valErrCount = np.zeros((self._lambda_count))
-        for j in xrange(self._valSize):
+        for j in range(self._valSize):
             point = self._X_val[j]
             target = self._y_val[j]
             
-            for lambdaIndex in xrange(self._lambda_count):
+            for lambdaIndex in range(self._lambda_count):
                 labelWeights, _ = self.__class_weights_and_average_gap(point,lambdaIndex)
                 predLabel = labelWeights.index(max(labelWeights))
                 if target != predLabel:
@@ -534,16 +533,16 @@ class DDT:
 
     def __traverse(self, node, minDepth, maxDepth, lambdaIdx):
         if (minDepth <= node.get_depth()) and (node.get_depth() <= maxDepth):
-            print "axis %s" %str(node.get_axis())
-            print "threshold %s" %str(node.get_threshold())
-            print "empErr %s" %str(node.get_empError())
-            print "penalty %s" %str(node.get_penalty())
-            print "expPhi %s" %str(node.get_phi()[lambdaIdx])
-            print "beta %s" %str(node.get_beta()[lambdaIdx])
-            print "alpha %s" %str(node.get_alpha()[lambdaIdx])
-            print "weights %s" %str(node.get_weight()[lambdaIdx])
+            print("axis %s" %str(node.get_axis()))
+            print("threshold %s" %str(node.get_threshold()))
+            print("empErr %s" %str(node.get_empError()))
+            print("penalty %s" %str(node.get_penalty()))
+            print("expPhi %s" %str(node.get_phi()[lambdaIdx]))
+            print("beta %s" %str(node.get_beta()[lambdaIdx]))
+            print("alpha %s" %str(node.get_alpha()[lambdaIdx]))
+            print("weights %s" %str(node.get_weight()[lambdaIdx]))
             if node.get_threshold() is None:
-                print "Reached terminal leaf of depth %s" %str(node.get_depth())
+                print("Reached terminal leaf of depth %s" %str(node.get_depth()))
                 return 
             else:
                 self.__traverse(node.get_left(), minDepth, maxDepth, lambdaIdx)
@@ -581,7 +580,7 @@ class DDT:
             alphaCorrect = True
             if not (alphaCorrect and betaCorrect and weightsCorrect):
                 return False
-                print node.get_depth()
+                print(node.get_depth()) 
             else:
                 return (self.checkWeights(left,lambdaIdx) and self.checkWeights(right,lambdaIdx))     
 
@@ -592,7 +591,7 @@ class DDT:
         testCount = len(y_test)
         weights_list = []
         accuracyCount = 0
-        for i in xrange(testCount):
+        for i in range(testCount):
             labelWeights, _ = self.__class_weights_and_average_gap(X_test[i,:],lambda_index)
             weights_list.append(labelWeights)
         return weights_list
@@ -602,11 +601,11 @@ class DDT:
         margins_list = []
         misClassifiedVector = np.ones((testCount),dtype=int) # 1 if the example is mis-classified, 0 otherwise 
         accuracyCount = 0
-        for i in xrange(testCount):
+        for i in range(testCount):
             labelWeights, gapSum = self.__class_weights_and_average_gap(X_test[i,:],lambda_index)
 
             logWeights = []
-            for j in xrange(self._numOfLabels):
+            for j in range(self._numOfLabels):
                 logWeights.append(labelWeights[j].ln())
             predLabel = logWeights.index(max(logWeights))
 
@@ -635,7 +634,7 @@ class DDT:
     def score(self, X_test, y_test, lambda_index=None):
         testCount = len(y_test)
         accuracyCount = 0
-        for i in xrange(testCount):
+        for i in range(testCount):
             labelWeights, _ = self.__class_weights_and_average_gap(X_test[i,:],lambda_index)
             predLabel = labelWeights.index(max(labelWeights))
             if predLabel == y_test[i]:
